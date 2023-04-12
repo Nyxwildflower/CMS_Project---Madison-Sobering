@@ -1,11 +1,20 @@
 <?php
     require('connect.php');
 
-    $query = "SELECT p.*, c.comment_content, c.publish_time FROM pages p JOIN comments c ON (p.page_id = c.page_id)";
+    $page_query = "SELECT p.*, c.*, u.username FROM pages p JOIN users u ON (u.user_id = p.user_id) JOIN categories c ON (c.category_id = p.category_id) LIMIT 1";
 
-    $statement = $db->prepare($query);
+    $statement = $db->prepare($page_query);
+    $statement->execute();
+    $page = $statement->fetch();
 
-    $statement->execute(); 
+    $page_id = $page['page_id'];
+
+    // Separate query to find comments 
+    $comment_query = "SELECT c.*, u.username FROM comments c JOIN users u ON (u.user_id = c.user_id) WHERE c.page_id = :page_id";
+    
+    $comments = $db->prepare($comment_query);
+    $comments->bindValue('page_id', $page_id, PDO::PARAM_INT);
+    $comments->execute();
 ?>
 
 <!DOCTYPE html>
@@ -13,16 +22,18 @@
 <head>
     <title>PDO SELECT</title>
 </head>
-<body>
-    <h1>Found <?= $statement->rowCount() ?> Rows</h1>
-    
-    <ul>
-        <!-- Fetch each table row in turn. Each $row is a table row hash.
-             Fetch returns FALSE when out of rows, halting the loop. -->
-            <?php while($row = $statement->fetch()): ?>
-                <li><?= $row['title'] ?> Content: <?= $row['content'] ?></li>
-                <li><?= $row['comment_content'] ?> from <?= $row['publish_time']?></li>
-            <?php endwhile ?>
-    </ul>
+<body>    
+    <h2><?= $page['title'] ?></h2>
+    <h3>By <?= $page['username'] ?></h3>
+    <h3><?= $page['category_name'] ?></h3>
+    <div><?= $page['content'] ?></div>
+    <div>
+        <?php while($comment = $comments->fetch()): ?>
+            <div>
+                <h3><?= $comment['username'] ?></h3>
+                <p><?= $comment['comment_content'] ?></p>
+            </div>
+        <?php endwhile ?>
+    </div>
 </body>
 </html> 
