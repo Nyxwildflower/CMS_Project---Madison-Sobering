@@ -24,7 +24,7 @@
 </head>
 <body>    
     <h2><?= $page['title'] ?></h2>
-    <h3>By <?= $page['username'] ?></h3>
+    <h3>By: <?= $page['username'] ?></h3>
     <h3><?= $page['category_name'] ?></h3>
     <div><?= $page['content'] ?></div>
     <div>
