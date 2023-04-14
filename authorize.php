@@ -15,6 +15,5 @@
     header('WWW-Authenticate: Basic realm="Our Blog"');
 
     exit("Access Denied: Username and password required.");
-
   }
 ?>
