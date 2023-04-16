@@ -27,6 +27,7 @@
     <h3>By: <?= $page['username'] ?></h3>
     <h3><?= $page['category_name'] ?></h3>
     <div><?= $page['content'] ?></div>
+    <a href="create.php">Create Page</a>
     <div>
         <?php while($comment = $comments->fetch()): ?>
             <div>
