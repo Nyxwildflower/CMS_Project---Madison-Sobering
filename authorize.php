@@ -26,7 +26,7 @@
 			$_SESSION['message'] = "Login successful, welcome {$user['username']}.";
             $error = NULL;
 
-            header("Location: admin.php");
+            header("Location: admin.php?manage=pages");
             exit();
 		}else{
 			$error = "Username or password is incorrect.";
