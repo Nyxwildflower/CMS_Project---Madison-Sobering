@@ -1,5 +1,6 @@
 <?php
     require('connect.php');
+    require('check_session.php');
 
     if(isset($_GET['page_id']) && filter_input(INPUT_GET, 'page_id', FILTER_VALIDATE_INT)){
         $page_id = $_GET['page_id'];
