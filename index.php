@@ -32,18 +32,12 @@
 <body>
     <?php include('header.php') ?>
 
-    <div class="container">
+    <div class="container mb-4">
         <h2><?= $page['title'] ?></h2>
         <h3>By: <?= $page['username'] ?></h3>
         <h3><?= $page['category_name'] ?></h3>
         <div><?= $page['content'] ?></div>
         <div><?= $page['created'] ?></div>
-    </div>
-
-    <div class="container">
-        <a class="btn btn-dark" href="create.php">Create Page</a>
-        <a class="btn btn-dark" href="edit.php?page_id=<?= $page['page_id'] ?>">Edit Page</a>
-        <a class="btn btn-dark" href="delete.php?page_id=<?= $page['page_id'] ?>">Delete Page</a>
     </div>
 
     <div class="container">
