@@ -90,8 +90,8 @@
                 <label for="check_password">Re-enter Password</label>
                 <input class="form-control" name="check_password" type="password" required>
 
-                <input name="form_type" type="hidden" value="account">
-                <button class="btn btn-success my-5" type="submit">Create Account</button>
+                <a class="row ml-1 mt-2" href="authorize.php">Already have an account? Log in.</a>
+                <button class="btn btn-success my-4" type="submit">Create Account</button>
             </form>
 
         <?php for($i = 0; $i < count($errors); $i++): ?>
