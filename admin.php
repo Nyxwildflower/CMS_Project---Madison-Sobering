@@ -87,7 +87,7 @@
         <?php if($_GET['manage'] === "pages"): ?>
             <h2>Page List</h2>
 
-            <form action="admin.php" method="post">
+            <form action="admin.php?manage=pages" method="post">
                 <div class="input-group">
                     <select name="sort" class="custom-select">
                         <?php foreach($select_values as $query_value => $name): ?>

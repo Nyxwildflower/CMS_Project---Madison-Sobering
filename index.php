@@ -36,7 +36,7 @@
         <h2><?= $page['title'] ?></h2>
         <h3>By: <?= $page['username'] ?></h3>
         <h3><?= $page['category_name'] ?></h3>
-        <div><?= $page['content'] ?></div>
+        <div class="container"><?= $page['content'] ?></div>
         <div><?= $page['created'] ?></div>
     </div>
 
