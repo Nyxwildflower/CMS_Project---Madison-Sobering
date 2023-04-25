@@ -17,8 +17,10 @@
     if($_POST){        
         $title = filter_input(INPUT_POST, "title", FILTER_SANITIZE_FULL_SPECIAL_CHARS);
         $title = trim($title);
-        $content = filter_input(INPUT_POST, "content", FILTER_SANITIZE_FULL_SPECIAL_CHARS);
-        $content = trim($content);
+        // Remove any html tags that aren't listed here. Any other hack protection is provided by TinyMCE or binding values.
+        $tags = '<p><strong><em><u><h1><h2><h3><h4><h5><h6><li><ol><ul><span><pre><blockquote><div><br><ins><del><sup><sub><s>';
+        $rawContent = $_POST['content'];
+        $content = strip_tags($rawContent, $tags);
         $category_id = filter_input(INPUT_POST, "select_category", FILTER_SANITIZE_NUMBER_INT);
         $page_id = filter_input(INPUT_POST, "page_id", FILTER_SANITIZE_NUMBER_INT);
         
@@ -49,6 +51,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
     <title>Edit Page</title>
+
+    <script src="https://cdn.tiny.cloud/1/cfxecaywr83guf9liq8zsidbrkp5qikqla1xshy7jamyn50r/tinymce/6/tinymce.min.js" referrerpolicy="origin"></script>
+    <script>
+      tinymce.init({
+        selector: '#editor'
+      });
+    </script>
 </head>
 <body>
     <?= include('header.php') ?>    
@@ -60,7 +69,7 @@
         <input class="form-control" name="title" type="text" value="<?= $page['title'] ?>" />
 
         <label for="content"></label>
-        <textarea class="form-control" id="create_content" name="content" rows="10"><?= $page['content'] ?></textarea>
+        <textarea class="form-control" id="editor" name="content"><?= $page['content'] ?></textarea>
 
         <label for="select_category">Select a category that this page best fits</label>
         <select class="form-control" name="select_category" id="select_category">
