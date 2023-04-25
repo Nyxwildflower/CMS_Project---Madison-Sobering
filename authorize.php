@@ -8,7 +8,7 @@
 		$password = $_POST['password'];
 
         // Collecting bare minimum user info to verify the login and admin status.
-		$query = "SELECT admin_verify, username, salted_password FROM users WHERE username = :username";
+		$query = "SELECT user_id, admin_verify, username, salted_password FROM users WHERE username = :username";
 		$statement = $db->prepare($query);
 
 		$statement->bindValue("username", $username, PDO::PARAM_STR);
@@ -23,6 +23,7 @@
                 $_SESSION['user'] = $user['username'];
             }
 			
+            $_SESSION['id'] = $user['user_id'];
 			$_SESSION['message'] = "Login successful, welcome {$user['username']}.";
             $error = NULL;
 
