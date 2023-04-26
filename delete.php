@@ -10,7 +10,7 @@
         $statement->bindValue('page_id', $page_id, PDO::PARAM_INT);
         $statement->execute();
     
-        header("Location: index.php");
+        header("Location: admin.php?manage=pages");
         exit("Deleted page successfully.");
     }else{
         header("Location: index.php");
