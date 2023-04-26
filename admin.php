@@ -6,7 +6,7 @@
     $select_values =['p.title'=>'Title','p.created'=>'Created','p.updated'=>'Updated'];
 
     // Sort isn't bound into the query because the values aren't changeable by the user.
-    $list_query = "SELECT * FROM pages p JOIN categories c ON (c.category_id = p.category_id) ORDER BY {$sort}";
+    $list_query = "SELECT * FROM pages p LEFT JOIN categories c ON (c.category_id = p.category_id) ORDER BY {$sort}";
     $page_list = $db->prepare($list_query);
     $page_list->execute();
 
@@ -47,7 +47,48 @@
             header("Location: admin.php?manage=categories");
         }
     }elseif($_GET['manage'] === "users"){
+        $user_type = [0 => 'User', 1 => 'Admin'];
+        $user_query = "SELECT user_id, admin_verify, username, email FROM users";
 
+        $users = $db->prepare($user_query);
+        $users->execute();
+
+        if($_POST && filter_input(INPUT_POST, 'user_id', FILTER_VALIDATE_INT)){
+            $admin_verify = filter_input(INPUT_POST, 'admin_verify', FILTER_SANITIZE_NUMBER_INT);
+            $username = filter_input(INPUT_POST, 'username', FILTER_SANITIZE_FULL_SPECIAL_CHARS);
+            $username = trim($username);
+            $email = filter_input(INPUT_POST, 'email', FILTER_SANITIZE_EMAIL);
+            $email = trim($email);
+            $user_id = filter_input(INPUT_POST, 'user_id', FILTER_SANITIZE_NUMBER_INT);
+
+            if($_POST['command'] === "edit" && $username !== "" && $email !== "" && filter_input(INPUT_POST, 'email', FILTER_VALIDATE_EMAIL)){
+                $user_update = "UPDATE users SET admin_verify = :admin_verify, username = :username, email = :email WHERE user_id = :user_id LIMIT 1";
+
+                $user_edit = $db->prepare($user_update);
+
+                $user_edit->bindValue("admin_verify", $admin_verify, PDO::PARAM_INT);
+                $user_edit->bindValue("username", $username, PDO::PARAM_STR);
+                $user_edit->bindValue("email", $email, PDO::PARAM_STR);
+                $user_edit->bindValue("user_id", $user_id, PDO::PARAM_INT);
+
+                $user_edit->execute();
+            }elseif($_POST['command'] === "delete"){
+                $delete_user = "DELETE FROM users WHERE user_id = :user_id LIMIT 1";
+                $user_delete_statement = $db->prepare($delete_user);
+            
+                $user_delete_statement->bindValue("user_id", $user_id, PDO::PARAM_INT);
+
+                $user_delete_statement->execute();
+
+                // If user deletes theirself, log them out
+                // if only one admin left, can't delete
+                if($_SESSION['user_id'] === $user_id){
+                    header("Location: logout.php");
+                }
+            }
+
+            header("Location: admin.php?manage=users");
+        }
     }
 ?>
 
@@ -58,7 +99,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
-    <title>Page List</title>
+    <title>Admin</title>
 </head>
 <body>
     <?php include('header.php') ?>
@@ -70,6 +111,9 @@
             </div>
             <div class="nav-item">
                 <a class="ml-3 btn btn-outline-info" href="admin.php?manage=categories">Manage Categories</a>
+            </div>
+            <div class="nav-item">
+                <a class="ml-3 btn btn-outline-info" href="create_account.php">Create a new User</a>
             </div>
             <!-- Prevent normal users from performing CRUD tasks on the users table. -->
             <?php if(isset($_SESSION['admin'])): ?>
@@ -105,7 +149,7 @@
             </form>
 
             <table class="table">
-                <caption>List of pages</caption>
+                <caption>List of Pages</caption>
                 <thead>
                     <tr>
                         <th scope="col">Page Name</th>
@@ -122,7 +166,7 @@
                             <td><?= $page['created'] ?></td>
                             <td><?= $page['updated'] ?></td>
                             <td><?= $page['category_name'] ?></td>
-                            <td><a href="delete.php?page_id=<?= $page['page_id'] ?>">Delete</a></td>
+                            <td><a class="btn btn-outline-danger" href="delete.php?page_id=<?= $page['page_id'] ?>">Delete</a></td>
                         </tr>
                     <?php endwhile ?>
                 </tbody>
@@ -181,8 +225,59 @@
                     <?php endwhile ?>
                 </tbody>
             </table>
-        <?php elseif($_GET['manage'] === "users"): ?>
+        <?php elseif($_GET['manage'] === "users"): ?>            
+            <h2>User List</h2>
 
+            <table class="table mt-5">
+                <caption>List of Users</caption>
+                <thead>
+                    <tr>
+                        <th scope="col">User Type</th>
+                        <th scope="col">Username</th>
+                        <th scope="col">Email</th>
+                        <th scope="col">Edit</th>
+                        <th scope="col">Delete</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php while($user = $users->fetch()): ?>
+                        <tr>
+                            <form action="admin.php?manage=users" method="post">
+                                <th scope="row">
+                                    <select name="admin_verify" class="custom-select">
+                                        <?php foreach($user_type as $value => $type): ?>
+                                            <?php if($user['admin_verify'] === $value): ?>
+                                                <option selected value="<?= $value ?>"><?= $type ?></option>
+                                            <?php else: ?>
+                                                <option value="<?= $value ?>"><?= $type ?></option>
+                                            <?php endif ?>
+                                        <?php endforeach ?>
+                                    </select>                                    
+                                </th>
+                                <td>
+                                    <input class="form-control" name="username" type="text" value="<?= $user['username'] ?>"/>
+                                </td>
+                                <td>
+                                    <input class="form-control" name="email" type="email" value="<?= $user['email'] ?>"/>
+                                </td>
+                                <td>
+                                    <input type="hidden" name="command" value="edit"/>
+                                    <input type="hidden" name="user_id" value="<?= $user['user_id'] ?>"/>
+                                    <button class="btn btn-outline-secondary" type="submit">Update User</button>
+                                </td>
+                            </form>
+                            <td>
+                                <form action="admin.php?manage=users" method="post">
+                                    <input type="hidden" name="command" value="delete"/>
+                                    <input type="hidden" name="user_id" value="<?= $user['user_id'] ?>"/>
+                                    
+                                    <button class="btn btn-outline-danger" type="submit">Delete User</button>
+                                </form>    
+                            </td>
+                        </tr>
+                    <?php endwhile ?>
+                </tbody>
+            </table>
         <?php endif ?>
     </main>
 

@@ -3,7 +3,7 @@
     session_start();
 
     // Get the selected page info with the connected user and category.
-    $page_query = "SELECT p.*, c.*, u.username FROM pages p JOIN users u ON (u.user_id = p.user_id) JOIN categories c ON (c.category_id = p.category_id) WHERE p.page_id = :id LIMIT 1";
+    $page_query = "SELECT p.*, c.*, u.username FROM pages p LEFT JOIN users u ON (u.user_id = p.user_id) LEFT JOIN categories c ON (c.category_id = p.category_id) WHERE p.page_id = :id LIMIT 1";
 
     $id = isset($_GET['page_id']) ? $_GET['page_id'] : $_GET['page_id'] = 2;
 
@@ -55,8 +55,16 @@
 
     <div class="container mb-4">
         <h2><?= $page['title'] ?></h2>
-        <h3>By: <?= $page['username'] ?></h3>
-        <h3><?= $page['category_name'] ?></h3>
+        <?php if($page['user_id'] === NULL): ?>
+            <h3>Author no longer exists</h3>
+        <?php else: ?>
+            <h3>By: <?= $page['username'] ?></h3>
+        <?php endif ?>
+        <?php if($page['category_id'] === NULL): ?>
+            <h3>No category</h3>
+        <?php else: ?>
+            <h3><?= $page['category_name'] ?></h3>
+        <?php endif ?>
         <div class="container"><?= $page['content'] ?></div>
         <div><?= $page['created'] ?></div>
     </div>
