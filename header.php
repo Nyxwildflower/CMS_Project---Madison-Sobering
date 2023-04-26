@@ -14,6 +14,9 @@
                     <li class="nav-item">
                         <a class="nav-link" href="admin.php?manage=pages">Admin</a>
                     </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="create_account.php">Create Account</a>
+                    </li>
                     <?php if(isset($_SESSION['user']) || isset($_SESSION['admin'])): ?>
                         <li class="nav-item">
                             <a class="nav-link" href="logout.php">Logout</a>
