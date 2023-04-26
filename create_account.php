@@ -8,7 +8,7 @@
     $existing_users = $db->prepare($user_query);
     $existing_users->execute();
 
-    if($_POST){
+    if(!empty($_POST)){
         $create_account_inputs = ["email","username","password","check_password"];
         $email = filter_input(INPUT_POST, "email", FILTER_SANITIZE_EMAIL);
         $email = trim($email);
@@ -24,7 +24,7 @@
             $input = $_POST[$create_account_inputs[$i]];
 
             if(trim($input) === ""){
-                $errors[] .= "The field for {$input} must not be blank.";
+                $errors[] .= "The field for {$create_account_inputs[$i]} must not be blank.";
             }
         }
 
@@ -59,6 +59,8 @@
             $add_user->execute();
             header("Location: index.php?page_id=2");
             exit("User created.");
+        }else{
+            // header("Location: create_account.php");
         }
     }
 ?>

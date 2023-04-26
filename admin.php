@@ -48,12 +48,18 @@
         }
     }elseif($_GET['manage'] === "users"){
         $user_type = [0 => 'User', 1 => 'Admin'];
+        $logout = false;
         $user_query = "SELECT user_id, admin_verify, username, email FROM users";
 
         $users = $db->prepare($user_query);
         $users->execute();
 
-        if($_POST && filter_input(INPUT_POST, 'user_id', FILTER_VALIDATE_INT)){
+        $admin_query = "SELECT admin_verify FROM users WHERE admin_verify = 1";
+        $admin_count = $db->prepare($admin_query);
+        $admin_count->execute();
+        $admins = $admin_count->rowCount();
+
+        if(!empty($_POST) && filter_input(INPUT_POST, 'user_id', FILTER_VALIDATE_INT)){
             $admin_verify = filter_input(INPUT_POST, 'admin_verify', FILTER_SANITIZE_NUMBER_INT);
             $username = filter_input(INPUT_POST, 'username', FILTER_SANITIZE_FULL_SPECIAL_CHARS);
             $username = trim($username);
@@ -73,21 +79,35 @@
 
                 $user_edit->execute();
             }elseif($_POST['command'] === "delete"){
-                $delete_user = "DELETE FROM users WHERE user_id = :user_id LIMIT 1";
-                $user_delete_statement = $db->prepare($delete_user);
-            
-                $user_delete_statement->bindValue("user_id", $user_id, PDO::PARAM_INT);
+                if($admins > 1 || (int)$admin_verify === 0){
+                    if($_SESSION['id'] === (int)$user_id){
+                        $logout = true;
+                    }
 
-                $user_delete_statement->execute();
+                    $delete_user = "DELETE FROM users WHERE user_id = :user_id LIMIT 1";
+                    $user_delete_statement = $db->prepare($delete_user);
+                
+                    $user_delete_statement->bindValue("user_id", $user_id, PDO::PARAM_INT);
 
-                // If user deletes theirself, log them out
-                // if only one admin left, can't delete
-                if($_SESSION['user_id'] === $user_id){
-                    header("Location: logout.php");
+                    $user_delete_statement->execute();
+                }else{
+
+
+
+
+
+
+                    // THIS DOESN'T WORK
+                    $admin_error = "There must be one admin.";
                 }
             }
 
-            header("Location: admin.php?manage=users");
+            // Logs user out if they delete theirself.
+            if($logout){
+                header("Location: logout.php");
+            }else{
+                header("Location: admin.php?manage=users");
+            }
         }
     }
 ?>
@@ -270,6 +290,7 @@
                                 <form action="admin.php?manage=users" method="post">
                                     <input type="hidden" name="command" value="delete"/>
                                     <input type="hidden" name="user_id" value="<?= $user['user_id'] ?>"/>
+                                    <input type="hidden" name="admin_verify" value="<?= $user['admin_verify'] ?>"/>
                                     
                                     <button class="btn btn-outline-danger" type="submit">Delete User</button>
                                 </form>    
@@ -278,6 +299,8 @@
                     <?php endwhile ?>
                 </tbody>
             </table>
+            
+                <p class="alert alert-danger"><?= $admin_error ?></p>
         <?php endif ?>
     </main>
 
