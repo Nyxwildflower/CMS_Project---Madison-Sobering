@@ -21,21 +21,27 @@
         $tags = '<p><strong><em><u><h1><h2><h3><h4><h5><h6><li><ol><ul><span><pre><blockquote><div><br><ins><del><sup><sub><s>';
         $rawContent = $_POST['content'];
         $content = strip_tags($rawContent, $tags);
+        $content = trim($content);
         $category_id = filter_input(INPUT_POST, "select_category", FILTER_SANITIZE_NUMBER_INT);
         $page_id = filter_input(INPUT_POST, "page_id", FILTER_SANITIZE_NUMBER_INT);
         
-        $edit_page = "UPDATE pages SET title = :title, content = :content, category_id = :category_id WHERE page_id = :page_id LIMIT 1";
-        $edit_statement = $db->prepare($edit_page);
-        
-        $edit_statement->bindValue('title', $title, PDO::PARAM_STR);
-        $edit_statement->bindValue('content', $content, PDO::PARAM_STR);
-        $edit_statement->bindValue('category_id', $category_id, PDO::PARAM_INT);
-        $edit_statement->bindValue('page_id', $page_id, PDO::PARAM_INT);
+        if(isset($title) && isset($content) && $title !== "" && $content !== ""){
+            $edit_page = "UPDATE pages SET title = :title, content = :content, category_id = :category_id WHERE page_id = :page_id LIMIT 1";
+            $edit_statement = $db->prepare($edit_page);
+            
+            $edit_statement->bindValue('title', $title, PDO::PARAM_STR);
+            $edit_statement->bindValue('content', $content, PDO::PARAM_STR);
+            $edit_statement->bindValue('category_id', $category_id, PDO::PARAM_INT);
+            $edit_statement->bindValue('page_id', $page_id, PDO::PARAM_INT);
 
-        $edit_statement->execute();
+            $edit_statement->execute();
 
-        header("Location: index.php");
-        exit("Edit Successful");
+            header("Location: index.php");
+            exit("Edit Successful");
+        }else{
+            header("Location: admin.php?manage=pages");
+            exit();
+        }
     }
 
     $category_query = "SELECT * FROM categories";

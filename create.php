@@ -10,22 +10,28 @@
         $tags = '<p><strong><em><u><h1><h2><h3><h4><h5><h6><li><ol><ul><span><pre><blockquote><div><br><ins><del>';
         $rawContent = $_POST['content'];
         $content = strip_tags($rawContent, $tags);
+        $content = trim($content);
         $category_id = filter_input(INPUT_POST, "select_category", FILTER_SANITIZE_NUMBER_INT);
 
-        $create_query = "INSERT INTO pages (user_id, title, content, created, category_id) VALUES (:user_id, :title, :content, :created, :category_id)";
+        if(isset($title) && isset($content) && $title !== "" && $content !== ""){
+            $create_query = "INSERT INTO pages (user_id, title, content, created, category_id) VALUES (:user_id, :title, :content, :created, :category_id)";
 
-        $create_page = $db->prepare($create_query);
-        $create_page->bindValue('user_id', 1, PDO::PARAM_INT);
-        $create_page->bindValue('title', $title, PDO::PARAM_STR);
-        $create_page->bindValue('content', $content, PDO::PARAM_STR);
-        $create_page->bindValue('created', $current_timestamp, PDO::PARAM_STR);
-        $create_page->bindValue('category_id', $category_id, PDO::PARAM_INT);
-        $create_page->execute();
+            $create_page = $db->prepare($create_query);
 
+            $create_page->bindValue('user_id', $_SESSION['id'], PDO::PARAM_INT);
+            $create_page->bindValue('title', $title, PDO::PARAM_STR);
+            $create_page->bindValue('content', $content, PDO::PARAM_STR);
+            $create_page->bindValue('created', $current_timestamp, PDO::PARAM_STR);
+            $create_page->bindValue('category_id', $category_id, PDO::PARAM_INT);
 
-        // Need to check character limits on title and content
-        header("Location: index.php");
-        exit("Page created.");
+            $create_page->execute();
+
+            header("Location: index.php");
+            exit("Page created.");
+        }else{
+            header("Location: admin.php?manage=pages");
+            exit();
+        }
     }
 
     $category_query = "SELECT * FROM categories";
