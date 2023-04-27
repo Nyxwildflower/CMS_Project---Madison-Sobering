@@ -37,6 +37,13 @@
         return $renamed_file;
     }
 
+    // Removes a file from the images folder.
+    function delete_file($file_name){
+        $delete_image_path = file_upload($file_name);
+
+        unlink($delete_image_path);
+    }
+
     // Upload file.
     if($file_is_selected){
         $image_filename = $_FILES['upload_image']['name'];
@@ -44,25 +51,18 @@
         $new_image_path = file_upload($image_filename);
 
         if(file_is_an_image($temporary_image_path, $new_image_path)){
-            // $extension = "." . pathinfo($new_image_path, PATHINFO_EXTENSION);
-            // $new_name_file = rename_file($image_filename, "_resized", $extension);
-            // $rename_image_path = file_upload($new_name_file);
-
-            // $image_resize = new \Gumlet\ImageResize($rename_image_path);
-            // $image_resize->resizeToWidth(600);
-            // $image_resize->save($rename_image_path);
+            $extension = "." . pathinfo($new_image_path, PATHINFO_EXTENSION);
 
             move_uploaded_file($temporary_image_path, $new_image_path);
 
-            $extension = "." . pathinfo($new_image_path, PATHINFO_EXTENSION);
-
-
             $medium_file = rename_file($new_image_path, "_medium", $extension);
 
-            $medium_resize = new \Gumlet\ImageResize($image_filename); 
+            $medium_resize = new \Gumlet\ImageResize($new_image_path); 
             $medium_resize->resizeToWidth(600);
             $medium_resize->save(file_upload($medium_file));
 
+            // Remove the original size image after transfer.
+            unlink($new_image_path);
         }else{
             $errors[] .= "This is not an accepted image file.";
         }
