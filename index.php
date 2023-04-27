@@ -55,6 +55,7 @@
 
     <div class="container mb-4">
         <h2><?= $page['title'] ?></h2>
+        <div><?= $page['created'] ?></div>
         <?php if($page['user_id'] === NULL): ?>
             <h3>Author no longer exists</h3>
         <?php else: ?>
@@ -65,8 +66,10 @@
         <?php else: ?>
             <h3><?= $page['category_name'] ?></h3>
         <?php endif ?>
+        <?php if($page['image_file'] !== NULL): ?>
+            <img src="images/<?= $page['image_file'] ?>" alt="<?= $page['image_file'] ?>"/>
+        <?php endif ?>
         <div class="container"><?= $page['content'] ?></div>
-        <div><?= $page['created'] ?></div>
     </div>
 
     <div class="container">
