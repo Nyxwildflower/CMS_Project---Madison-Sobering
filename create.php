@@ -1,6 +1,7 @@
 <?php
     require('connect.php');
     require('check_session.php');
+    require('image_upload.php');
 
     if($_POST){
         date_default_timezone_set("America/Winnipeg");
@@ -11,18 +12,25 @@
         $rawContent = $_POST['content'];
         $content = strip_tags($rawContent, $tags);
         $content = trim($content);
+        $slug_text = filter_input(INPUT_POST, 'slug_text', FILTER_SANITIZE_FULL_SPECIAL_CHARS);
+        $slug_text = trim($slug_text);
         $category_id = filter_input(INPUT_POST, "select_category", FILTER_SANITIZE_NUMBER_INT);
 
         if(isset($title) && isset($content) && $title !== "" && $content !== ""){
-            $create_query = "INSERT INTO pages (user_id, title, content, created, category_id) VALUES (:user_id, :title, :content, :created, :category_id)";
+            $file_is_selected = isset($_FILES['upload_image']) && ($_FILES['upload_image']['error'] === 0);
+            $file_error = isset($_FILES['image']) && ($_FILES['image']['error'] > 0);
+
+            $create_query = "INSERT INTO pages (user_id, title, content, slug_text, created, category_id, image_file) VALUES (:user_id, :title, :content, :slug_text, :created, :category_id, :image_file)";
 
             $create_page = $db->prepare($create_query);
 
             $create_page->bindValue('user_id', $_SESSION['id'], PDO::PARAM_INT);
             $create_page->bindValue('title', $title, PDO::PARAM_STR);
             $create_page->bindValue('content', $content, PDO::PARAM_STR);
+            $create_page->bindValue('slug_text', $slug_text, PDO::PARAM_STR);
             $create_page->bindValue('created', $current_timestamp, PDO::PARAM_STR);
             $create_page->bindValue('category_id', $category_id, PDO::PARAM_INT);
+            $create_page->bindValue('image_file', $medium_file);
 
             $create_page->execute();
 
@@ -58,7 +66,7 @@
 <body>
     <?php include('header.php') ?>    
 
-    <form class="container" action="create.php" method="post">
+    <form class="container" action="create.php" method="post" enctype='multipart/form-data'>
         <label for="title">Title</label>
         <input class="form-control" name="title" type="text"/>
 
@@ -71,6 +79,17 @@
                     <option value="<?= $category['category_id'] ?>"><?= $category['category_name'] ?></option>
             <?php endwhile ?>
         </select>
+
+        <div class="form-row mt-4">
+            <div class="col">
+                <label for="upload_image">Add an image</label>
+                <input class="form-control-file" name="upload_image" type="file"/>
+            </div>
+            <div class="col">
+                <label for="slug_text">URL slug text</label>
+                <input class="form-control" name="slug_text" type="text"/>
+            </div>
+        </div>
 
         <button class="btn btn-success mt-5" type="submit">Submit</button>
     </form>

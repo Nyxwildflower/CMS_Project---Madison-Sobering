@@ -1,6 +1,7 @@
 <?php
     require('connect.php');
     require('check_session.php');
+    require('image_upload.php');
     
     if(isset($_GET['page_id']) && filter_input(INPUT_GET, 'page_id', FILTER_VALIDATE_INT)){
         $page_id = $_GET['page_id'];
@@ -22,17 +23,21 @@
         $rawContent = $_POST['content'];
         $content = strip_tags($rawContent, $tags);
         $content = trim($content);
+        $slug_text = filter_input(INPUT_POST, 'slug_text', FILTER_SANITIZE_FULL_SPECIAL_CHARS);
+        $slug_text = trim($slug_text);
         $category_id = filter_input(INPUT_POST, "select_category", FILTER_SANITIZE_NUMBER_INT);
         $page_id = filter_input(INPUT_POST, "page_id", FILTER_SANITIZE_NUMBER_INT);
         
         if(isset($title) && isset($content) && $title !== "" && $content !== ""){
-            $edit_page = "UPDATE pages SET title = :title, content = :content, category_id = :category_id WHERE page_id = :page_id LIMIT 1";
+            $edit_page = "UPDATE pages SET title = :title, content = :content, slug_text = :slug_text, category_id = :category_id, image_file = :image_file WHERE page_id = :page_id LIMIT 1";
             $edit_statement = $db->prepare($edit_page);
             
             $edit_statement->bindValue('title', $title, PDO::PARAM_STR);
             $edit_statement->bindValue('content', $content, PDO::PARAM_STR);
+            $edit_statement->bindValue('slug_text', $slug_text, PDO::PARAM_STR);
             $edit_statement->bindValue('category_id', $category_id, PDO::PARAM_INT);
             $edit_statement->bindValue('page_id', $page_id, PDO::PARAM_INT);
+            $edit_statement->bindValue('image_file', $new_name_file);
 
             $edit_statement->execute();
 
@@ -87,6 +92,17 @@
                 <?php endif ?>
             <?php endwhile ?>
         </select>
+
+        <div class="form-row mt-4">
+            <div class="col">
+                <label for="upload_image">Add an image</label>
+                <input class="form-control-file" name="upload_image" type="file" value="images\<?= $page['image_file'] ?>"/>
+            </div>
+            <div class="col">
+                <label for="slug_text">URL slug text</label>
+                <input class="form-control" name="slug_text" type="text" value="<?= $page['slug_text'] ?>"/>
+            </div>
+        </div>
 
         <button class="btn btn-success mt-5" type="submit">Submit</button>
     </form>
