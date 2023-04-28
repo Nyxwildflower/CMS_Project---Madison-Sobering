@@ -3,16 +3,26 @@
     require('check_session.php');
     require('image_upload.php');
     
-    if(isset($_GET['page_id']) && filter_input(INPUT_GET, 'page_id', FILTER_VALIDATE_INT)){
-        $page_id = $_GET['page_id'];
+    if(isset($_GET['page_id'])){
+        $page_id = filter_input(INPUT_GET, 'page_id', FILTER_SANITIZE_NUMBER_INT);
+        $page_id = trim($page_id);
 
         $get_page = "SELECT * FROM pages WHERE page_id = :page_id LIMIT 1";
+
+        if(!(isset($page_id) && filter_input(INPUT_GET, 'page_id', FILTER_VALIDATE_INT) && $page_id > 0)){
+            $page_id = 0;
+        }
+
         $get_statement = $db->prepare($get_page);
         
         $get_statement->bindValue('page_id', $page_id, PDO::PARAM_INT);
         
         $get_statement->execute();
         $page = $get_statement->fetch();
+
+        if($get_statement->rowCount() === 0){
+            header("Location: admin.php?manage=pages");
+        }
     }else{
         header("Location: admin.php?manage=pages");
         exit("Invalid page_id");

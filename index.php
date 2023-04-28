@@ -2,15 +2,34 @@
     require('connect.php');
     session_start();
 
-    // Get the selected page info with the connected user and category.
-    $page_query = "SELECT p.*, c.*, u.username FROM pages p LEFT JOIN users u ON (u.user_id = p.user_id) LEFT JOIN categories c ON (c.category_id = p.category_id) WHERE p.page_id = :id LIMIT 1";
+    if(!isset($_GET['page_id'])){
+        // If no link is clicked, or GET is empty, get the first page in the database
+        $page_query = "SELECT p.*, c.*, u.username FROM pages p LEFT JOIN users u ON (u.user_id = p.user_id) LEFT JOIN categories c ON (c.category_id = p.category_id) LIMIT 1";
+    }else{
+        $id = filter_input(INPUT_GET, 'page_id', FILTER_SANITIZE_NUMBER_INT);
+        $id = trim($id);
 
-    $id = isset($_GET['page_id']) ? $_GET['page_id'] : $_GET['page_id'] = 2;
-
+        // Get the selected page info with the connected user and category.
+        $page_query = "SELECT p.*, c.*, u.username FROM pages p LEFT JOIN users u ON (u.user_id = p.user_id) LEFT JOIN categories c ON (c.category_id = p.category_id) WHERE p.page_id = :id LIMIT 1";
+    }
+    
     $statement = $db->prepare($page_query);
-    $statement->bindValue('id', $id, PDO::PARAM_INT);
+
+    // If page_id is set, bind id value.
+    if(isset($id) && filter_input(INPUT_GET, 'page_id', FILTER_VALIDATE_INT) && $id > 0){
+        $statement->bindValue('id', $id, PDO::PARAM_INT);
+    }elseif(isset($_GET['page_id'])){
+        $id = 0;
+        $statement->bindValue('id', $id, PDO::PARAM_INT);
+    }
+    
     $statement->execute();
     $page = $statement->fetch();
+
+    // If no page has that id, return to index main page.
+    if($statement->rowCount() === 0){
+        header("Location: index.php");
+    }
 
     $page_id = $page['page_id'];
 
@@ -48,7 +67,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
-    <title>Museum of Experience</title>
+    <title>Grand Museum of Passengers</title>
 </head>
 <body>
     <?php include('header.php') ?>
