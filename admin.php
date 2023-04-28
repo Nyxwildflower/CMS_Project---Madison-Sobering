@@ -125,30 +125,32 @@
     <?php include('header.php') ?>
 
     <main class="container">
-        <div class="nav justify-content-end">
-            <div class="nav-item">
-                <a class="ml-3 btn btn-outline-info" href="create.php">Create Page</a>
-            </div>
-            <div class="nav-item">
-                <a class="ml-3 btn btn-outline-info" href="admin.php?manage=categories">Manage Categories</a>
-            </div>
-            <div class="nav-item">
-                <a class="ml-3 btn btn-outline-info" href="create_account.php">Create a new User</a>
-            </div>
-            <!-- Prevent normal users from performing CRUD tasks on the users table. -->
-            <?php if(isset($_SESSION['admin'])): ?>
-                <div class="nav-item">
-                    <a class="ml-3 btn btn-outline-info" href="admin.php?manage=users">Manage Users</a>
+        <div class="navbar navbar-expand-sm">
+            <div class="navbar-nav flex-wrap" role="navigation">
+                <div class="nav-item d-inline-flex">
+                    <a class="mx-2 mb-3 btn btn-outline-info" href="create.php">Create Page</a>
                 </div>
-            <?php endif ?>
-        </div>
-    
-        <div class="mt-4 alert alert-success alert-dismissible" role="alert">
-            <div><?= $_SESSION['message'] ?></div>
-            <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <div class="nav-item d-inline-flex">
+                    <a class="mx-2 mb-3 btn btn-outline-info" href="admin.php?manage=categories">Manage Categories</a>
+                </div>
+                <div class="nav-item d-inline-flex">
+                    <a class="mx-2 mb-3 btn btn-outline-info" href="create_account.php">Create a new User</a>
+                </div>
+                <div class="nav-item d-inline-flex">
+                    <!-- Prevent normal users from performing CRUD tasks on the users table. -->
+                    <?php if(isset($_SESSION['admin'])): ?>
+                        <a class="mx-2 mb-3 btn btn-outline-info" href="admin.php?manage=users">Manage Users</a>
+                    <?php endif ?>
+                </div>
+            </div>
         </div>
 
         <?php if($_GET['manage'] === "pages"): ?>
+            <div class="mt-4 alert alert-success alert-dismissible" role="alert">
+                <div><?= $_SESSION['message'] ?></div>
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            </div>
+
             <h2>Page List</h2>
 
             <form action="admin.php?manage=pages" method="post">
@@ -168,29 +170,31 @@
                 </div>
             </form>
 
-            <table class="table">
-                <caption>List of Pages</caption>
-                <thead>
-                    <tr>
-                        <th scope="col">Page Name</th>
-                        <th scope="col">Date Created</th>
-                        <th scope="col">Date Updated</th>
-                        <th scope="col">Category</th>
-                        <th scope="col">Delete</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php while($page = $page_list->fetch()): ?>
+            <div class="table-responsive-lg">
+                <table class="table">
+                    <caption>List of Pages</caption>
+                    <thead>
                         <tr>
-                            <th scope="row"><a href="edit.php?page_id=<?= $page['page_id'] ?>"><?= $page['title'] ?></a></th>
-                            <td><?= $page['created'] ?></td>
-                            <td><?= $page['updated'] ?></td>
-                            <td><?= $page['category_name'] ?></td>
-                            <td><a class="btn btn-outline-danger" href="delete.php?page_id=<?= $page['page_id'] ?>">Delete</a></td>
+                            <th scope="col">Page Name</th>
+                            <th scope="col">Date Created</th>
+                            <th scope="col">Date Updated</th>
+                            <th scope="col">Category</th>
+                            <th scope="col">Delete</th>
                         </tr>
-                    <?php endwhile ?>
-                </tbody>
-            </table>
+                    </thead>
+                    <tbody>
+                        <?php while($page = $page_list->fetch()): ?>
+                            <tr>
+                                <th scope="row"><a href="edit.php?page_id=<?= $page['page_id'] ?>"><?= $page['title'] ?></a></th>
+                                <td><?= $page['created'] ?></td>
+                                <td><?= $page['updated'] ?></td>
+                                <td><?= $page['category_name'] ?></td>
+                                <td><a class="btn btn-outline-danger" href="delete.php?page_id=<?= $page['page_id'] ?>">Delete</a></td>
+                            </tr>
+                        <?php endwhile ?>
+                    </tbody>
+                </table>
+            </div>
         <?php elseif($_GET['manage'] === "categories"): ?>
             <h2>Category List</h2>
             
@@ -204,103 +208,107 @@
                 <button class="btn btn-success mt-3" type="submit">Create</button>
             </form>
 
-            <table class="table mt-5">
-                <caption>List of Categories</caption>
-                <thead>
-                    <tr>
-                        <th scope="col">Category Name</th>
-                        <th scope="col">Update</th>
-                        <th scope="col">Delete</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php while($category = $categories->fetch()): ?>
+            <div class="table-responsive-md">
+                <table class="table mt-5">
+                    <caption>List of Categories</caption>
+                    <thead>
                         <tr>
-                            <th scope="row"><?= $category['category_name'] ?></th>
-                            <td>
-                                <!-- Edit form within the table because it's just one value. -->
-                                <form action="admin.php?manage=categories" method="post">
-                                    <label class="sr-only" for="edit_category">Edit Category</label>
-
-                                    <div class="input-group mb-3">
-                                        <input type="text" class="form-control" name="category_name" value="<?= $category['category_name'] ?>"/>
-                                        <div class="input-group-append">
-                                            <button class="btn btn-outline-secondary" type="submit">Edit</button>
-                                        </div>
-                                    </div>
-
-                                    <input type="hidden" name="command" value="edit"/>
-                                    <input type="hidden" name="category_id" value="<?= $category['category_id'] ?>"/>
-                                </form>
-                            </td>
-                            <td>
-                                <form action="admin.php?manage=categories" method="post">
-                                    <input type="hidden" name="command" value="delete"/>
-                                    <input type="hidden" name="category_id" value="<?= $category['category_id'] ?>"/>
-                                    
-                                    <button class="btn btn-outline-danger" type="submit">Delete Category</button>
-                                </form>    
-                            </td>
+                            <th scope="col">Category Name</th>
+                            <th scope="col">Update</th>
+                            <th scope="col">Delete</th>
                         </tr>
-                    <?php endwhile ?>
-                </tbody>
-            </table>
+                    </thead>
+                    <tbody>
+                        <?php while($category = $categories->fetch()): ?>
+                            <tr>
+                                <th scope="row"><?= $category['category_name'] ?></th>
+                                <td>
+                                    <!-- Edit form within the table because it's just one value. -->
+                                    <form action="admin.php?manage=categories" method="post">
+                                        <label class="sr-only" for="edit_category">Edit Category</label>
+
+                                        <div class="input-group mb-3">
+                                            <input type="text" class="form-control" name="category_name" value="<?= $category['category_name'] ?>"/>
+                                            <div class="input-group-append">
+                                                <button class="btn btn-outline-secondary" type="submit">Edit</button>
+                                            </div>
+                                        </div>
+
+                                        <input type="hidden" name="command" value="edit"/>
+                                        <input type="hidden" name="category_id" value="<?= $category['category_id'] ?>"/>
+                                    </form>
+                                </td>
+                                <td>
+                                    <form action="admin.php?manage=categories" method="post">
+                                        <input type="hidden" name="command" value="delete"/>
+                                        <input type="hidden" name="category_id" value="<?= $category['category_id'] ?>"/>
+                                        
+                                        <button class="btn btn-outline-danger" type="submit">Delete Category</button>
+                                    </form>    
+                                </td>
+                            </tr>
+                        <?php endwhile ?>
+                    </tbody>
+                </table>
+            </div>
         <?php elseif($_GET['manage'] === "users"): ?>            
             <h2>User List</h2>
 
-            <table class="table mt-5">
-                <caption>List of Users</caption>
-                <thead>
-                    <tr>
-                        <th scope="col">User Type</th>
-                        <th scope="col">Username</th>
-                        <th scope="col">Email</th>
-                        <th scope="col">Edit</th>
-                        <th scope="col">Delete</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php while($user = $users->fetch()): ?>
+            <div class="table-responsive-lg">
+                <table class="table mt-5">
+                    <caption>List of Users</caption>
+                    <thead>
                         <tr>
-                            <form action="admin.php?manage=users" method="post">
-                                <th scope="row">
-                                    <select name="admin_verify" class="custom-select">
-                                        <?php foreach($user_type as $value => $type): ?>
-                                            <?php if($user['admin_verify'] === $value): ?>
-                                                <option selected value="<?= $value ?>"><?= $type ?></option>
-                                            <?php else: ?>
-                                                <option value="<?= $value ?>"><?= $type ?></option>
-                                            <?php endif ?>
-                                        <?php endforeach ?>
-                                    </select>                                    
-                                </th>
-                                <td>
-                                    <input class="form-control" name="username" type="text" value="<?= $user['username'] ?>"/>
-                                </td>
-                                <td>
-                                    <input class="form-control" name="email" type="email" value="<?= $user['email'] ?>"/>
-                                </td>
-                                <td>
-                                    <input type="hidden" name="command" value="edit"/>
-                                    <input type="hidden" name="user_id" value="<?= $user['user_id'] ?>"/>
-                                    <button class="btn btn-outline-secondary" type="submit">Update User</button>
-                                </td>
-                            </form>
-                            <td>
-                                <form action="admin.php?manage=users" method="post">
-                                    <input type="hidden" name="command" value="delete"/>
-                                    <input type="hidden" name="user_id" value="<?= $user['user_id'] ?>"/>
-                                    <input type="hidden" name="admin_verify" value="<?= $user['admin_verify'] ?>"/>
-                                    
-                                    <button class="btn btn-outline-danger" type="submit">Delete User</button>
-                                </form>    
-                            </td>
+                            <th scope="col">User Type</th>
+                            <th scope="col">Username</th>
+                            <th scope="col">Email</th>
+                            <th scope="col">Edit</th>
+                            <th scope="col">Delete</th>
                         </tr>
-                    <?php endwhile ?>
-                </tbody>
-            </table>
+                    </thead>
+                    <tbody>
+                        <?php while($user = $users->fetch()): ?>
+                            <tr>
+                                <form action="admin.php?manage=users" method="post">
+                                    <th scope="row">
+                                        <select name="admin_verify" class="custom-select">
+                                            <?php foreach($user_type as $value => $type): ?>
+                                                <?php if($user['admin_verify'] === $value): ?>
+                                                    <option selected value="<?= $value ?>"><?= $type ?></option>
+                                                <?php else: ?>
+                                                    <option value="<?= $value ?>"><?= $type ?></option>
+                                                <?php endif ?>
+                                            <?php endforeach ?>
+                                        </select>                                    
+                                    </th>
+                                    <td>
+                                        <input class="form-control" name="username" type="text" value="<?= $user['username'] ?>"/>
+                                    </td>
+                                    <td>
+                                        <input class="form-control" name="email" type="email" value="<?= $user['email'] ?>"/>
+                                    </td>
+                                    <td>
+                                        <input type="hidden" name="command" value="edit"/>
+                                        <input type="hidden" name="user_id" value="<?= $user['user_id'] ?>"/>
+                                        <button class="btn btn-outline-secondary" type="submit">Update User</button>
+                                    </td>
+                                </form>
+                                <td>
+                                    <form action="admin.php?manage=users" method="post">
+                                        <input type="hidden" name="command" value="delete"/>
+                                        <input type="hidden" name="user_id" value="<?= $user['user_id'] ?>"/>
+                                        <input type="hidden" name="admin_verify" value="<?= $user['admin_verify'] ?>"/>
+                                        
+                                        <button class="btn btn-outline-danger" type="submit">Delete User</button>
+                                    </form>    
+                                </td>
+                            </tr>
+                        <?php endwhile ?>
+                    </tbody>
+                </table>
+            </div>
             
-                <p class="alert alert-danger"><?= $admin_error ?></p>
+            <p class="alert alert-danger"><?= $admin_error ?></p>
         <?php endif ?>
     </main>
 
