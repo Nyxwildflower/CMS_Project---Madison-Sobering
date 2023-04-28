@@ -29,13 +29,13 @@
         
             // Redirect if search was only white space
         }else{
-            header("Location: index.php?page_id=2");
+            header("Location: index.php");
             exit("You didn't search anything.");
         }
 
         // Redirect if the user didn't search for anything.
     }else{
-        header("Location: index.php?page_id=2");
+        header("Location: index.php");
         exit("Something went wrong.");
     }
 ?>

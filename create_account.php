@@ -57,7 +57,7 @@
             $add_user->bindValue("salted_password", $hash_password, PDO::PARAM_STR);
 
             $add_user->execute();
-            header("Location: index.php?page_id=2");
+            header("Location: index.php");
             exit("User created.");
         }else{
             // header("Location: create_account.php");
