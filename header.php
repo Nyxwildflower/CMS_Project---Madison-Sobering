@@ -29,7 +29,7 @@
                     <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Pages</a>
                     <div class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
                         <?php while($link = $statement->fetch()): ?>
-                            <a class="dropdown-item" href="index.php?page_id=<?= $link['page_id'] ?>&title=<?= $link['title'] ?>"><?= $link['title'] ?></a>
+                            <a class="dropdown-item" href="index.php?page_id=<?= $link['page_id'] ?>"><?= $link['title'] ?></a>
                         <?php endwhile ?>
                     </div>
                 </li>
