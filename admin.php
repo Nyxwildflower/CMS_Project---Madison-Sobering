@@ -2,15 +2,16 @@
     require('connect.php');
     require('check_session.php');
 
-    $sort = isset($_POST['sort']) ? $_POST['sort'] : "p.title";
-    $select_values =['p.title'=>'Title','p.created'=>'Created','p.updated'=>'Updated'];
+    if($_GET['manage'] === "pages"){
+        $sort = isset($_POST['sort']) ? $_POST['sort'] : "p.title";
+        $select_values =['p.title'=>'Title','p.created'=>'Created','p.updated'=>'Updated'];
 
-    // Sort isn't bound into the query because the values aren't changeable by the user.
-    $list_query = "SELECT * FROM pages p LEFT JOIN categories c ON (c.category_id = p.category_id) ORDER BY {$sort}";
-    $page_list = $db->prepare($list_query);
-    $page_list->execute();
+        // Sort isn't bound into the query because the values aren't changeable by the user.
+        $list_query = "SELECT * FROM pages p LEFT JOIN categories c ON (c.category_id = p.category_id) ORDER BY {$sort}";
+        $page_list = $db->prepare($list_query);
+        $page_list->execute();
 
-    if($_GET['manage'] === "categories"){
+    }elseif($_GET['manage'] === "categories"){
         $category_query = "SELECT * FROM categories ORDER BY category_name";
         $categories = $db->prepare($category_query);
         $categories->execute();
@@ -46,7 +47,7 @@
 
             header("Location: admin.php?manage=categories");
         }
-    }elseif($_GET['manage'] === "users"){
+    }elseif($_GET['manage'] === "users" && isset($_SESSION['admin'])){
         $user_type = [0 => 'User', 1 => 'Admin'];
         $logout = false;
         $user_query = "SELECT user_id, admin_verify, username, email FROM users";
@@ -109,6 +110,9 @@
                 header("Location: admin.php?manage=users");
             }
         }
+    }else{
+        // Returns to pages admin if get value doesn't work
+        header("Location: admin.php?manage=pages");
     }
 ?>
 
