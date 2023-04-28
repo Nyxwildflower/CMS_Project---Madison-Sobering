@@ -3,6 +3,9 @@
     require('check_session.php');
     require('image_upload.php');
     
+    $edit_errors = [];
+
+    // Prevent page_id GET shenanigans.
     if(isset($_GET['page_id'])){
         $page_id = filter_input(INPUT_GET, 'page_id', FILTER_SANITIZE_NUMBER_INT);
         $page_id = trim($page_id);
@@ -36,10 +39,31 @@
         $rawContent = $_POST['content'];
         $content = strip_tags($rawContent, $tags);
         $content = trim($content);
+        // Regex for spaces, but not styled tags.
+        $space_regex = "/^<p>(&nbsp;\s)+(&nbsp;)+<\/p>$/";
+        $not_spaces = preg_match($space_regex, $content);
         $category_id = filter_input(INPUT_POST, "select_category", FILTER_SANITIZE_NUMBER_INT);
-        $page_id = filter_input(INPUT_POST, "page_id", FILTER_SANITIZE_NUMBER_INT);
+        $category_id = trim($category_id);
+        $edit_page_id = filter_input(INPUT_POST, "edit_page_id", FILTER_SANITIZE_NUMBER_INT);
+        $edit_page_id = trim($edit_page_id);
 
-        if(isset($title) && isset($content) && $title !== "" && $content !== ""){
+        if(!isset($title) || $title === ""){
+            $edit_errors[] .= "Title must not be blank";
+        }
+
+        if(!isset($content) || $content === "" || $content === NULL || $not_spaces === 1){
+            $edit_errors[] .= "Content must not be blank";
+        }
+
+        if(!(isset($category_id) || filter_input(INPUT_POST, 'category_id', FILTER_VALIDATE_INT))){
+            $edit_errors[] .= "This category doesn't exist";
+        }
+
+        if(!(isset($edit_page_id) || filter_input(INPUT_POST, 'edit_page_id', FILTER_VALIDATE_INT))){
+            $edit_errors[] .= "The page id is invalid. Please go back to the admin page.";
+        }
+
+        if(count($edit_errors) === 0 && count($image_errors) === 0){
 
             // Check for no database image, and no image being added.
             if($page['image_file'] === NULL && empty($medium_file)){
@@ -59,22 +83,19 @@
                 $current_image = $page['image_file'];
             }
 
-            $edit_page = "UPDATE pages SET title = :title, content = :content, category_id = :category_id, image_file = :image_file WHERE page_id = :page_id LIMIT 1";
+            $edit_page = "UPDATE pages SET title = :title, content = :content, category_id = :category_id, image_file = :image_file WHERE page_id = :edit_page_id LIMIT 1";
             $edit_statement = $db->prepare($edit_page);
             
             $edit_statement->bindValue('title', $title, PDO::PARAM_STR);
             $edit_statement->bindValue('content', $content, PDO::PARAM_STR);
             $edit_statement->bindValue('category_id', $category_id, PDO::PARAM_INT);
-            $edit_statement->bindValue('page_id', $page_id, PDO::PARAM_INT);
             $edit_statement->bindValue('image_file', $current_image);
+            $edit_statement->bindValue('edit_page_id', $edit_page_id, PDO::PARAM_INT);
 
             $edit_statement->execute();
 
-            header("Location: index.php");
-            exit("Edit Successful");
-        }else{
             header("Location: admin.php?manage=pages");
-            exit();
+            exit("Edit Successful");
         }
     }
 
@@ -100,47 +121,58 @@
     </script>
 </head>
 <body>
-    <?= include('header.php') ?>    
+    <?php include('header.php') ?>
 
-    <form class="container" action="edit.php?page_id=<?= $page['page_id'] ?>" method="post" enctype="multipart/form-data">
-        <input name="page_id" type="hidden" value="<?= $page['page_id'] ?>">
+    <main class="container">
+        <form action="edit.php?page_id=<?= $page['page_id'] ?>" method="post" enctype="multipart/form-data">
+            <input name="edit_page_id" type="hidden" value="<?= $page['page_id'] ?>">
 
-        <label for="title">Title</label>
-        <input class="form-control" name="title" type="text" value="<?= $page['title'] ?>" />
+            <label for="title">Title</label>
+            <input class="form-control" name="title" type="text" value="<?= $page['title'] ?>" />
 
-        <label for="content"></label>
-        <textarea class="form-control" id="editor" name="content"><?= $page['content'] ?></textarea>
+            <label for="content"></label>
+            <textarea class="form-control" id="editor" name="content"><?= $page['content'] ?></textarea>
 
-        <label class="mt-3" for="select_category">Select a category that this page best fits</label>
-        <select class="form-control" name="select_category" id="select_category">
-            <?php while($category = $categories->fetch()): ?>
-                <?php if($page['category_id'] == $category['category_id']): ?>
-                    <option selected value="<?= $category['category_id'] ?>"><?= $category['category_name'] ?></option>
-                <?php else: ?>
-                    <option value="<?= $category['category_id'] ?>"><?= $category['category_name'] ?></option>
-                <?php endif ?>
-            <?php endwhile ?>
-        </select>
+            <label class="mt-3" for="select_category">Select a category that this page best fits</label>
+            <select class="form-control" name="select_category" id="select_category">
+                <?php while($category = $categories->fetch()): ?>
+                    <?php if($page['category_id'] == $category['category_id']): ?>
+                        <option selected value="<?= $category['category_id'] ?>"><?= $category['category_name'] ?></option>
+                    <?php else: ?>
+                        <option value="<?= $category['category_id'] ?>"><?= $category['category_name'] ?></option>
+                    <?php endif ?>
+                <?php endwhile ?>
+            </select>
 
-        <?php if($page['image_file'] !== NULL): ?>
-            <div class="form-row mt-3">
-                <div class="col">
-                    <p>Current Image: <?= $page['image_file'] ?></p>
+            <?php if($page['image_file'] !== NULL): ?>
+                <div class="form-row mt-3">
+                    <div class="col">
+                        <p>Current Image: <?= $page['image_file'] ?></p>
+                    </div>
+                    <div class="col form-check mb-2 mr-sm-2">
+                        <input class="upload_image" type="checkbox" name="upload_image" id="inlineFormCheck" value="remove_image">
+                        <label class="form-check-label" for="upload_image">Delete Image?</label>
+                    </div>
                 </div>
-                <div class="col form-check mb-2 mr-sm-2">
-                    <input class="upload_image" type="checkbox" name="upload_image" id="inlineFormCheck" value="remove_image">
-                    <label class="form-check-label" for="upload_image">Delete Image?</label>
-                </div>
-            </div>
-        <?php else: ?>
-            <label class="mt-3" for="upload_image">Add an image</label>
-            <input class="form-control-file" name="upload_image" type="file"/>
+            <?php else: ?>
+                <label class="mt-3" for="upload_image">Add an image</label>
+                <input class="form-control-file" name="upload_image" type="file"/>
+            <?php endif ?>
+
+            <button class="btn btn-success my-5" type="submit">Submit</button>
+        </form>
+
+        <?php for($i = 0; $i < count($edit_errors); $i++): ?>
+            <p class="alert alert-danger"><?= $edit_errors[$i] ?></p>
+        <?php endfor ?>
+
+        <?php if(count($image_errors) > 0): ?>
+            <p class="alert alert-danger"><?= $image_errors[0] ?></p>
         <?php endif ?>
-
-        <button class="btn btn-success my-5" type="submit">Submit</button>
-    </form>
+    </main>
+ 
     <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/popper.js@1.12.9/dist/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
 </body>
-</html>
+</html> 
