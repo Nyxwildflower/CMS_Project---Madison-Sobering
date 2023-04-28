@@ -12,22 +12,19 @@
         $rawContent = $_POST['content'];
         $content = strip_tags($rawContent, $tags);
         $content = trim($content);
-        $slug_text = filter_input(INPUT_POST, 'slug_text', FILTER_SANITIZE_FULL_SPECIAL_CHARS);
-        $slug_text = trim($slug_text);
         $category_id = filter_input(INPUT_POST, "select_category", FILTER_SANITIZE_NUMBER_INT);
 
         if(isset($title) && isset($content) && $title !== "" && $content !== ""){
             $file_is_selected = isset($_FILES['upload_image']) && ($_FILES['upload_image']['error'] === 0);
             $file_error = isset($_FILES['image']) && ($_FILES['image']['error'] > 0);
 
-            $create_query = "INSERT INTO pages (user_id, title, content, slug_text, created, category_id, image_file) VALUES (:user_id, :title, :content, :slug_text, :created, :category_id, :image_file)";
+            $create_query = "INSERT INTO pages (user_id, title, content, created, category_id, image_file) VALUES (:user_id, :title, :content, :created, :category_id, :image_file)";
 
             $create_page = $db->prepare($create_query);
 
             $create_page->bindValue('user_id', $_SESSION['id'], PDO::PARAM_INT);
             $create_page->bindValue('title', $title, PDO::PARAM_STR);
             $create_page->bindValue('content', $content, PDO::PARAM_STR);
-            $create_page->bindValue('slug_text', $slug_text, PDO::PARAM_STR);
             $create_page->bindValue('created', $current_timestamp, PDO::PARAM_STR);
             $create_page->bindValue('category_id', $category_id, PDO::PARAM_INT);
             $create_page->bindValue('image_file', $medium_file);
@@ -73,25 +70,17 @@
         <label for="content"></label>
         <textarea class="form-control" id="editor" name="content"></textarea>
 
-        <label for="select_category">Select a category that this page best fits</label>
+        <label class="mt-3" for="select_category">Select a category that this page best fits</label>
         <select class="form-control" name="select_category" id="select_category">
             <?php while($category = $categories->fetch()): ?>
                     <option value="<?= $category['category_id'] ?>"><?= $category['category_name'] ?></option>
             <?php endwhile ?>
         </select>
 
-        <div class="form-row mt-4">
-            <div class="col">
-                <label for="upload_image">Add an image</label>
-                <input class="form-control-file" name="upload_image" type="file"/>
-            </div>
-            <div class="col">
-                <label for="slug_text">URL slug text</label>
-                <input class="form-control" name="slug_text" type="text"/>
-            </div>
-        </div>
+        <label class="mt-3" for="upload_image">Add an image</label>
+        <input class="form-control-file" name="upload_image" type="file"/>
 
-        <button class="btn btn-success mt-5" type="submit">Submit</button>
+        <button class="btn btn-success my-5" type="submit">Submit</button>
     </form>
     <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/popper.js@1.12.9/dist/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
