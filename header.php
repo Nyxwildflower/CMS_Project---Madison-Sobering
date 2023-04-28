@@ -2,6 +2,10 @@
     $query = "SELECT page_id, title FROM pages";
     $statement = $db->prepare($query);
     $statement->execute();
+
+    $category_search_query = "SELECT * FROM categories";
+    $category_search_statement = $db->prepare($category_search_query);
+    $category_search_statement->execute();
 ?>
 
 <header class="container-fluid bg-light mb-4">
@@ -33,10 +37,20 @@
                 </ul>
             </div>
 
-            <form action="index.php?ask=search" method="post" class="form-inline my-2 my-lg-0">
-                <label class="sr-only" for="search">Search</label>
-                <input type="text" class="form-control mr-sm-2" placeholder="Search Titles...">
-                <button class="btn btn-outline-primary my-2 my-sm-0" type="submit">Search</button>
+            <form action="search.php" method="post" class="form-inline my-2 my-lg-0">
+                <div class="input-group">
+                    <label class="sr-only" for="search">Search</label>
+                    <input type="text" name="search" class="form-control" placeholder="Search Titles.."/>
+                    <select name="in_category" class="btn btn-outline-primary dropdown-toggle dropdown-toggle-split" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        <option class="dropdown-item" value="Any">Any</option>
+                        <?php while($category_specify = $category_search_statement->fetch()): ?>
+                            <option class="dropdown-item" value="<?= $category_specify['category_name'] ?>"><?= $category_specify['category_name'] ?></option>
+                        <?php endwhile ?>
+                    </select> 
+                    <div class="input-group-append">
+                        <button type="submit" class="btn btn-outline-primary">Search</button>
+                    </div>
+                </div>
             </form>
         </nav>
     </div>
