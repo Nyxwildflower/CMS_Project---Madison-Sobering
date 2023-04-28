@@ -2,6 +2,8 @@
     require('\xampp\htdocs\wd2\assignments\CMS_Project - Madison Sobering\php-image-resize-master\lib\ImageResize.php');
     require('\xampp\htdocs\wd2\assignments\CMS_Project - Madison Sobering\php-image-resize-master\lib\ImageResizeException.php');
 
+    $image_errors = [];
+
     // Check for file or error.
     $file_is_selected = isset($_FILES['upload_image']) && ($_FILES['upload_image']['error'] === 0);
     $file_error = isset($_FILES['image']) && ($_FILES['image']['error'] > 0);
@@ -55,16 +57,16 @@
 
             move_uploaded_file($temporary_image_path, $new_image_path);
 
-            $medium_file = rename_file($new_image_path, "_medium", $extension);
+            $rename_image_file = rename_file($new_image_path, "_resized", $extension);
 
-            $medium_resize = new \Gumlet\ImageResize($new_image_path); 
-            $medium_resize->resizeToWidth(600);
-            $medium_resize->save(file_upload($medium_file));
+            $rename_image_resize = new \Gumlet\ImageResize($new_image_path); 
+            $rename_image_resize->resizeToWidth(600);
+            $rename_image_resize->save(file_upload($rename_image_file));
 
             // Remove the original size image after transfer.
             unlink($new_image_path);
         }else{
-            $errors[] .= "This is not an accepted image file.";
+            $image_errors[] .= "This is not an accepted image file.";
         }
     }
 ?>

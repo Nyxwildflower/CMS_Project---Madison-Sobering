@@ -45,7 +45,7 @@
             $create_page->bindValue('content', $content, PDO::PARAM_STR);
             $create_page->bindValue('created', $current_timestamp, PDO::PARAM_STR);
             $create_page->bindValue('category_id', $category_id, PDO::PARAM_INT);
-            $create_page->bindValue('image_file', $medium_file);
+            $create_page->bindValue('image_file', $rename_image_file);
 
             $create_page->execute();
 

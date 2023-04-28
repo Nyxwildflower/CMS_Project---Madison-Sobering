@@ -66,12 +66,12 @@
         if(count($edit_errors) === 0 && count($image_errors) === 0){
 
             // Check for no database image, and no image being added.
-            if($page['image_file'] === NULL && empty($medium_file)){
+            if($page['image_file'] === NULL && empty($rename_image_file)){
                 $current_image = NULL;
 
                 // Check for no file in database, but new file being uploaded.
-            }elseif($page['image_file'] === NULL && !empty($medium_file)){
-                $current_image = $medium_file;
+            }elseif($page['image_file'] === NULL && !empty($rename_image_file)){
+                $current_image = $rename_image_file;
 
                 // Check for the delete checkbox being selected.
             }elseif($page['image_file'] !== NULL && isset($_POST['upload_image']) && $_POST['upload_image'] === "remove_image"){
