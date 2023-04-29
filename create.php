@@ -84,9 +84,9 @@
     <main class="container">
         <form action="create.php" method="post" enctype='multipart/form-data'>
             <label for="title">Title</label>
-            <input class="form-control" name="title" type="text"/>
+            <input class="form-control" name="title" type="text" id="title" />
 
-            <label for="content"></label>
+            <label>Content</label>
             <textarea class="form-control" id="editor" name="content"></textarea>
 
             <label class="mt-3" for="select_category">Select a category that this page best fits</label>
@@ -97,7 +97,7 @@
             </select>
 
             <label class="mt-3" for="upload_image">Add an image</label>
-            <input class="form-control-file" name="upload_image" type="file"/>
+            <input class="form-control-file" name="upload_image" type="file" id="upload_image"/>
 
             <button class="btn btn-success my-5" type="submit">Submit</button>
         </form>

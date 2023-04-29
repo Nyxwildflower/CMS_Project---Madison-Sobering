@@ -131,9 +131,9 @@
             <input name="edit_page_id" type="hidden" value="<?= $page['page_id'] ?>">
 
             <label for="title">Title</label>
-            <input class="form-control" name="title" type="text" value="<?= $page['title'] ?>" />
+            <input class="form-control" name="title" type="text" id="title" value="<?= $page['title'] ?>" />
 
-            <label for="content"></label>
+            <label>Content</label>
             <textarea class="form-control" id="editor" name="content"><?= $page['content'] ?></textarea>
 
             <label class="mt-3" for="select_category">Select a category that this page best fits</label>
@@ -154,12 +154,12 @@
                     </div>
                     <div class="col form-check mb-2 mr-sm-2">
                         <input class="upload_image" type="checkbox" name="upload_image" id="inlineFormCheck" value="remove_image">
-                        <label class="form-check-label" for="upload_image">Delete Image?</label>
+                        <label class="form-check-label">Delete Image?</label>
                     </div>
                 </div>
             <?php else: ?>
                 <label class="mt-3" for="upload_image">Add an image</label>
-                <input class="form-control-file" name="upload_image" type="file"/>
+                <input class="form-control-file" name="upload_image" id="upload_image" type="file"/>
             <?php endif ?>
 
             <button class="btn btn-success my-5" type="submit">Submit</button>

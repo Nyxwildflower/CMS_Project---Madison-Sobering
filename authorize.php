@@ -53,10 +53,10 @@
         <h2>Login</h2>
         <form action="authorize.php" method="post">
             <label for="username">Username</label>
-            <input class="form-control" name="username" type="text" required>
+            <input class="form-control" name="username" type="text" id="username" required>
 
             <label for="password">Password</label>
-            <input class="form-control" name="password" type="password" required>
+            <input class="form-control" name="password" type="password" id="password" required>
 
             <button class="btn btn-success mt-4 mb-2" type="submit">Login</button>
             <a class="btn btn-success mt-4 mb-2" role="button" href="create_account.php">Create Account</a>

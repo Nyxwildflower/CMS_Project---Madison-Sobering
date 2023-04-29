@@ -123,7 +123,7 @@
                 <form class="container mb-3" action="index.php" method="post">
                     <div class="form-group">
                         <label for="comment">Write a comment:</label>
-                        <textarea class="form-control" name="comment" rows="5"></textarea>    
+                        <textarea class="form-control" name="comment" id="comment" rows="5"></textarea>    
                     </div>
 
                     <input type="hidden" name="create" value="create_comment">

@@ -81,16 +81,16 @@
             <h2>Create Account</h2>
             <form action="create_account.php" method="post">
                 <label for="email">Email</label>
-                <input class="form-control" name="email" type="email" required>
+                <input class="form-control" name="email" type="email" id="email" required>
 
                 <label for="username">Username</label>
-                <input class="form-control" name="username" type="text" required>
+                <input class="form-control" name="username" type="text" id="username" required>
 
                 <label for="password">Password</label>
-                <input class="form-control" name="password" type="password" required>
+                <input class="form-control" name="password" type="password" id="password" required>
 
                 <label for="check_password">Re-enter Password</label>
-                <input class="form-control" name="check_password" type="password" required>
+                <input class="form-control" name="check_password" type="password" id="check_password" required>
 
                 <a class="row ml-1 mt-2" href="authorize.php">Already have an account? Log in.</a>
                 <button class="btn btn-success my-4" type="submit">Create Account</button>

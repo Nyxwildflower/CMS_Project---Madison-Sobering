@@ -40,7 +40,7 @@
             <form action="search.php" method="post" class="form-inline my-2 my-lg-0">
                 <div class="input-group">
                     <label class="sr-only" for="search">Search</label>
-                    <input type="text" name="search" class="form-control" placeholder="Search Titles.."/>
+                    <input type="text" name="search" class="form-control" id="search" placeholder="Search Titles.."/>
                     <select name="in_category" class="btn btn-outline-primary dropdown-toggle dropdown-toggle-split" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                         <option class="dropdown-item" value="Any">Any</option>
                         <?php while($category_specify = $category_search_statement->fetch()): ?>
