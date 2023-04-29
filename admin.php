@@ -257,9 +257,9 @@
             <h2>Category List</h2>
             
             <form class="mt-5" action="admin.php?manage=categories" method="post">
-                <legend>Create New Category</legend>    
+                <h3>Create New Category</h3>    
 
-                <label class="sr-only" for="category_name">Category Name</label>
+                <label class="sr-only">Category Name</label>
                 <input class="form-control" type="text" name="category_name"/>
 
                 <input type="hidden" name="command" value="create"/>
@@ -283,7 +283,7 @@
                                 <td>
                                     <!-- Edit form within the table because it's just one value. -->
                                     <form action="admin.php?manage=categories" method="post">
-                                        <label class="sr-only" for="edit_category">Edit Category</label>
+                                        <label class="sr-only">Edit Category</label>
 
                                         <div class="input-group mb-3">
                                             <input type="text" class="form-control" name="category_name" value="<?= $category['category_name'] ?>"/>
@@ -312,61 +312,55 @@
         <?php elseif($_GET['manage'] === "users"): ?>            
             <h2>User List</h2>
 
-            <div class="table-responsive-lg">
-                <table class="table mt-5">
-                    <caption>List of Users</caption>
-                    <thead>
-                        <tr>
-                            <th scope="col">User Type</th>
-                            <th scope="col">Username</th>
-                            <th scope="col">Email</th>
-                            <th scope="col">Edit</th>
-                            <th scope="col">Delete</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php while($user = $users->fetch()): ?>
-                            <tr>
-                                <form action="admin.php?manage=users" method="post">
-                                    <th scope="row">
-                                        <select name="admin_verify" class="custom-select">
-                                            <?php foreach($user_type as $value => $type): ?>
-                                                <?php if($user['admin_verify'] === $value): ?>
-                                                    <option selected value="<?= $value ?>"><?= $type ?></option>
-                                                <?php else: ?>
-                                                    <option value="<?= $value ?>"><?= $type ?></option>
-                                                <?php endif ?>
-                                            <?php endforeach ?>
-                                        </select>                                    
-                                    </th>
-                                    <td>
-                                        <label class="sr-only" for="username">Username</label>
-                                        <input class="form-control" name="username" type="text" value="<?= $user['username'] ?>"/>
-                                    </td>
-                                    <td>
-                                        <label class="sr-only" for="email">Email</label>
-                                        <input class="form-control" name="email" type="email" value="<?= $user['email'] ?>"/>
-                                    </td>
-                                    <td>
-                                        <input type="hidden" name="command" value="edit"/>
-                                        <input type="hidden" name="user_id" value="<?= $user['user_id'] ?>"/>
-                                        <button class="btn btn-outline-secondary" type="submit">Update User</button>
-                                    </td>
-                                </form>
-                                <td>
-                                    <form action="admin.php?manage=users" method="post">
-                                        <input type="hidden" name="command" value="delete"/>
-                                        <input type="hidden" name="user_id" value="<?= $user['user_id'] ?>"/>
-                                        <input type="hidden" name="admin_verify" value="<?= $user['admin_verify'] ?>"/>
-                                        
-                                        <button class="btn btn-outline-danger" type="submit">Delete User</button>
-                                    </form>    
-                                </td>
-                            </tr>
-                        <?php endwhile ?>
-                    </tbody>
-                </table>
+            <div class="my-4 pt-3 pb-2 row border-top border-bottom">
+                <h6 class="col font-weight-bold">User Type</h6>
+                <h6 class="col font-weight-bold">Username</h6>
+                <h6 class="col font-weight-bold">Email</h6>
+                <h6 class="col font-weight-bold">Edit</h6>
+                <h6 class="col font-weight-bold">Delete</h6>
             </div>
+
+            <?php while($user = $users->fetch()): ?>
+                <div class="row my-3">
+                    <form class="col row border-bottom pb-4 flex-nowrap" action="admin.php?manage=users" method="post">
+                        <div class="col-auto">
+                            <select name="admin_verify" class="custom-select">
+                                <?php foreach($user_type as $value => $type): ?>
+                                    <?php if($user['admin_verify'] === $value): ?>
+                                        <option selected value="<?= $value ?>"><?= $type ?></option>
+                                    <?php else: ?>
+                                        <option value="<?= $value ?>"><?= $type ?></option>
+                                    <?php endif ?>
+                                <?php endforeach ?>
+                            </select>
+                        </div>                               
+
+                        <div class="col">
+                            <label class="sr-only">Username</label>
+                            <input class="form-control" name="username" type="text" value="<?= $user['username'] ?>"/>
+                        </div>
+
+                        <div class="col">
+                            <label class="sr-only">Email</label>
+                            <input class="form-control" name="email" type="email" value="<?= $user['email'] ?>"/>
+                        </div>
+
+                        <div class="col-auto">
+                            <input type="hidden" name="command" value="edit"/>
+                            <input type="hidden" name="user_id" value="<?= $user['user_id'] ?>"/>
+                            <button class="btn btn-outline-secondary" type="submit">Update User</button>
+                        </div>
+                    </form>
+
+                    <form class="col-auto border-bottom pb-4" action="admin.php?manage=users" method="post">
+                        <input type="hidden" name="command" value="delete"/>
+                        <input type="hidden" name="user_id" value="<?= $user['user_id'] ?>"/>
+                        <input type="hidden" name="admin_verify" value="<?= $user['admin_verify'] ?>"/>
+                        
+                        <button class="btn btn-outline-danger" type="submit">Delete User</button>
+                    </form>
+                </div>
+            <?php endwhile ?>
         <?php endif ?>
     </main>
 
