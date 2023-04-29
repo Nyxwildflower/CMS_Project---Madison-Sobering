@@ -2,6 +2,8 @@
     require('connect.php');
     session_start();
 
+    $deleted_all_pages = false;
+
     if(!isset($_GET['page_id'])){
         // If no link is clicked, or GET is empty, get the first page in the database
         $page_query = "SELECT p.*, c.*, u.username FROM pages p LEFT JOIN users u ON (u.user_id = p.user_id) LEFT JOIN categories c ON (c.category_id = p.category_id) LIMIT 1";
@@ -12,7 +14,7 @@
         // Get the selected page info with the connected user and category.
         $page_query = "SELECT p.*, c.*, u.username FROM pages p LEFT JOIN users u ON (u.user_id = p.user_id) LEFT JOIN categories c ON (c.category_id = p.category_id) WHERE p.page_id = :id LIMIT 1";
     }
-    
+
     $statement = $db->prepare($page_query);
 
     // If page_id is set, bind id value.
@@ -28,10 +30,23 @@
 
     // If no page has that id, return to index main page.
     if($statement->rowCount() === 0){
-        header("Location: index.php");
-    }
+        // Stops constant redirecting when all pages are deleted.
+        if(!isset($_GET['page_id'])){
+            $deleted_all_pages = true;
+        }else{
+            header("Location: index.php");
+        }
+    }else{
+        // No sanitization because the value is from the database and should already be sanitized.
+        $page_id = $page['page_id'];
 
-    $page_id = $page['page_id'];
+        // Separate query to find comments 
+        $comment_query = "SELECT c.*, u.username FROM comments c JOIN users u ON (u.user_id = c.user_id) WHERE c.page_id = :page_id ORDER BY c.publish_time DESC";
+        
+        $comments = $db->prepare($comment_query);
+        $comments->bindValue('page_id', $page_id, PDO::PARAM_INT);
+        $comments->execute();
+    }
 
     // Create comment query.
     if(isset($_POST)){
@@ -51,13 +66,6 @@
             $comment_statement->execute();
         }
     }
-
-    // Separate query to find comments 
-    $comment_query = "SELECT c.*, u.username FROM comments c JOIN users u ON (u.user_id = c.user_id) WHERE c.page_id = :page_id ORDER BY c.publish_time DESC";
-    
-    $comments = $db->prepare($comment_query);
-    $comments->bindValue('page_id', $page_id, PDO::PARAM_INT);
-    $comments->execute();
 ?>
 
 <!DOCTYPE html>
@@ -72,58 +80,64 @@
 <body>
     <?php include('header.php') ?>
 
-    <div class="container mb-4">
-        <h2><?= $page['title'] ?></h2>
-        <div><?= $page['created'] ?></div>
-        <?php if($page['user_id'] === NULL): ?>
-            <h3>Author no longer exists</h3>
-        <?php else: ?>
-            <h3>By: <?= $page['username'] ?></h3>
-        <?php endif ?>
-        <?php if($page['category_id'] === NULL): ?>
-            <h3>No category</h3>
-        <?php else: ?>
-            <h3><?= $page['category_name'] ?></h3>
-        <?php endif ?>
-        <?php if($page['image_file'] !== NULL): ?>
-            <img src="images/<?= $page['image_file'] ?>" alt="<?= $page['image_file'] ?>"/>
-        <?php endif ?>
-        <div class="container"><?= $page['content'] ?></div>
-    </div>
+    <?php if($deleted_all_pages): ?>
+        <main class="container">
+            <h2 class="text-center mt-5">There are no pages to view, please create a new one.</h2>
+        </main>
+    <?php else: ?>
+        <main class="container mb-4">
+            <h2><?= $page['title'] ?></h2>
+            <div><?= $page['created'] ?></div>
+            <?php if($page['user_id'] === NULL): ?>
+                <h3>Author no longer exists</h3>
+            <?php else: ?>
+                <h3>By: <?= $page['username'] ?></h3>
+            <?php endif ?>
+            <?php if($page['category_id'] === NULL): ?>
+                <h3>No category</h3>
+            <?php else: ?>
+                <h3><?= $page['category_name'] ?></h3>
+            <?php endif ?>
+            <?php if($page['image_file'] !== NULL): ?>
+                <img src="images/<?= $page['image_file'] ?>" alt="<?= $page['image_file'] ?>"/>
+            <?php endif ?>
+            <div class="container"><?= $page['content'] ?></div>
+        </main>
 
-    <div class="container">
-        <h2 class="mb-4">Comments</h2>
+        <div class="container">
+            <h2 class="mb-4">Comments</h2>
 
-        <?php if(isset($_SESSION['user']) || isset($_SESSION['admin'])): ?>
-            <form class="mb-3" action="index.php" method="post">
-                <div class="form-group">
-                    <label for="comment">Write a comment:</label>
-                    <textarea class="form-control" name="comment" rows="5"></textarea>    
-                </div>
-
-                <input type="hidden" name="create" value="create_comment">
-                <input type="hidden" name="page_id" value="<?= $page_id ?>">
-                <button class="btn btn-outline-secondary btn-sm" type="submit">Comment</button>
-            </form>
-        <?php endif ?>
-
-        <?php if($comments->rowCount() === 0): ?>
-            <div class="alert alert-secondary">There are no comments.</div>
-        <?php else: ?>
-            <?php while($comment = $comments->fetch()): ?>
-                <div class="card mb-4">
-                    <div class="card-header">
-                        <h5><?= $comment['username'] ?></h5>
-                        <h6 class="text-muted"><?= $comment['publish_time'] ?></h6>
+            <?php if(isset($_SESSION['user']) || isset($_SESSION['admin'])): ?>
+                <form class="container mb-3" action="index.php" method="post">
+                    <div class="form-group">
+                        <label for="comment">Write a comment:</label>
+                        <textarea class="form-control" name="comment" rows="5"></textarea>    
                     </div>
-                    <div class="card-body">
-                        <p><?= $comment['comment_content'] ?></p>
-                    </div>
-                </div>
-            <?php endwhile ?> 
-        <?php endif ?>
 
-    </div>
+                    <input type="hidden" name="create" value="create_comment">
+                    <input type="hidden" name="page_id" value="<?= $page_id ?>">
+                    <button class="btn btn-outline-secondary btn-sm" type="submit">Comment</button>
+                </form>
+            <?php endif ?>
+
+            <?php if($comments->rowCount() === 0): ?>
+                <div class="alert alert-secondary">There are no comments.</div>
+            <?php else: ?>
+                <?php while($comment = $comments->fetch()): ?>
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5><?= $comment['username'] ?></h5>
+                            <h6 class="text-muted"><?= $comment['publish_time'] ?></h6>
+                        </div>
+                        <div class="card-body">
+                            <p><?= $comment['comment_content'] ?></p>
+                        </div>
+                    </div>
+                <?php endwhile ?> 
+            <?php endif ?>
+        </div>
+    <?php endif ?>
+
     <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/popper.js@1.12.9/dist/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
