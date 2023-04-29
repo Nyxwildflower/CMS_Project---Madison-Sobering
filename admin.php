@@ -2,6 +2,8 @@
     require('connect.php');
     require('check_session.php');
 
+    $admin_errors = [];
+
     if($_GET['manage'] === "pages"){
         $sort = isset($_POST['sort']) ? $_POST['sort'] : "p.title";
         $select_values =['p.title'=>'Title','p.created'=>'Created','p.updated'=>'Updated'];
@@ -16,36 +18,62 @@
         $categories = $db->prepare($category_query);
         $categories->execute();
 
+        // If one of the CUD forms is submitted, check values.
         if(isset($_POST['command'])){
             $category_name = isset($_POST['category_name']) ? filter_input(INPUT_POST, "category_name", FILTER_SANITIZE_FULL_SPECIAL_CHARS) : NULL;
             $category_name = trim($category_name);
-            $category_id = isset($_POST['category_id']) ? $_POST['category_id'] : NULL;
+            $category_id = isset($_POST['category_id']) ? filter_input(INPUT_POST, 'category_id', FILTER_SANITIZE_NUMBER_INT) : NULL;
             
-            if($_POST['command'] === "create" && $category_name !== "" && isset($category_name)){
-                $create = "INSERT INTO categories (category_name) VALUES (:category_name)";
-                $create_statement = $db->prepare($create);
-    
-                $create_statement->bindValue("category_name", $category_name, PDO::PARAM_STR);
-    
-                $create_statement->execute();
-            }elseif($_POST['command'] === "edit" && $category_name !== "" && isset($category_name)){
-                $edit = "UPDATE categories SET category_name = :category_name WHERE category_id = :category_id LIMIT 1";
-                $edit_statement = $db->prepare($edit);
+            if($_POST['command'] === "create"){
 
-                $edit_statement->bindValue("category_name", $category_name, PDO::PARAM_STR);
-                $edit_statement->bindValue("category_id", $category_id, PDO::PARAM_INT);
+                // Check for blank string.
+                if(!isset($category_name) || $category_name === ""){
+                    $admin_errors[] .= "The category can't be blank.";
+                }else{
+                    $create = "INSERT INTO categories (category_name) VALUES (:category_name)";
+                    $create_statement = $db->prepare($create);
+        
+                    $create_statement->bindValue("category_name", $category_name, PDO::PARAM_STR);
+        
+                    $create_statement->execute();
+                    header("Location: admin.php?manage=categories");
+                }
+            }elseif($_POST['command'] === "edit"){
+                
+                if(!isset($category_name) || $category_name === ""){
+                    $admin_errors[] .= "The category can't be blank.";
+                }
 
-                $edit_statement->execute();
+                if(!(isset($category_id) && $category_id > 0 && filter_input(INPUT_POST, 'category_id', FILTER_VALIDATE_INT))){
+                    $admin_errors[] .= "The category id is invalid. Please go back to the admin page section.";
+                }
+                
+                if(count($admin_errors) === 0){
+                    $edit = "UPDATE categories SET category_name = :category_name WHERE category_id = :category_id LIMIT 1";
+                    $edit_statement = $db->prepare($edit);
+
+                    $edit_statement->bindValue("category_name", $category_name, PDO::PARAM_STR);
+                    $edit_statement->bindValue("category_id", $category_id, PDO::PARAM_INT);
+
+                    $edit_statement->execute();
+                    header("Location: admin.php?manage=categories");
+                }
             }elseif($_POST['command'] === "delete"){
-                $delete = "DELETE FROM categories WHERE category_id = :category_id LIMIT 1";
-                $delete_statement = $db->prepare($delete);
 
-                $delete_statement->bindValue("category_id", $category_id, PDO::PARAM_INT);
+                if(!(isset($category_id) && $category_id > 0 && filter_input(INPUT_POST, 'category_id', FILTER_VALIDATE_INT))){
+                    $admin_errors[] .= "The category id is invalid. Please go back to the admin page section.";
+                }else{
+                    $delete = "DELETE FROM categories WHERE category_id = :category_id LIMIT 1";
+                    $delete_statement = $db->prepare($delete);
 
-                $delete_statement->execute();
+                    $delete_statement->bindValue("category_id", $category_id, PDO::PARAM_INT);
+
+                    $delete_statement->execute();
+                    header("Location: admin.php?manage=categories");
+                }
+            }else{
+                header("Location: admin.php?manage=pages");
             }
-
-            header("Location: admin.php?manage=categories");
         }
     }elseif($_GET['manage'] === "users" && isset($_SESSION['admin'])){
         $user_type = [0 => 'User', 1 => 'Admin'];
@@ -55,33 +83,58 @@
         $users = $db->prepare($user_query);
         $users->execute();
 
+        // Query the number of admins in user table. If only one, the admin cannot delete theirself.
         $admin_query = "SELECT admin_verify FROM users WHERE admin_verify = 1";
         $admin_count = $db->prepare($admin_query);
         $admin_count->execute();
         $admins = $admin_count->rowCount();
 
-        if(!empty($_POST) && filter_input(INPUT_POST, 'user_id', FILTER_VALIDATE_INT)){
-            $admin_verify = filter_input(INPUT_POST, 'admin_verify', FILTER_SANITIZE_NUMBER_INT);
+        // Check for submit event
+        if(!empty($_POST)){
+            // Admin verify didn't work in comparison tests without validating the int beforehand.
+            $admin_verify = isset($_POST['admin_verify']) ? filter_input(INPUT_POST, 'admin_verify', FILTER_SANITIZE_NUMBER_INT) : NULL;
+            $admin_verify = filter_var($admin_verify, FILTER_VALIDATE_INT);
             $username = filter_input(INPUT_POST, 'username', FILTER_SANITIZE_FULL_SPECIAL_CHARS);
             $username = trim($username);
             $email = filter_input(INPUT_POST, 'email', FILTER_SANITIZE_EMAIL);
             $email = trim($email);
             $user_id = filter_input(INPUT_POST, 'user_id', FILTER_SANITIZE_NUMBER_INT);
+            $user_id = filter_var($user_id, FILTER_VALIDATE_INT);
 
-            if($_POST['command'] === "edit" && $username !== "" && $email !== "" && filter_input(INPUT_POST, 'email', FILTER_VALIDATE_EMAIL)){
-                $user_update = "UPDATE users SET admin_verify = :admin_verify, username = :username, email = :email WHERE user_id = :user_id LIMIT 1";
+            // Common variable tests for both commands.
+            if(!isset($admin_verify) || ($admin_verify !== 0 && $admin_verify !== 1)){
+                $admin_errors[] .= "The admin id is invalid. Please go back to the admin pages section.";
+            }
 
-                $user_edit = $db->prepare($user_update);
+            if(!(isset($user_id) && filter_input(INPUT_POST, 'user_id', FILTER_VALIDATE_INT))){
+                $admin_errors[] .= "The user id is invalid. Please go back to the admin pages section.";
+            }
 
-                $user_edit->bindValue("admin_verify", $admin_verify, PDO::PARAM_INT);
-                $user_edit->bindValue("username", $username, PDO::PARAM_STR);
-                $user_edit->bindValue("email", $email, PDO::PARAM_STR);
-                $user_edit->bindValue("user_id", $user_id, PDO::PARAM_INT);
+            if($_POST['command'] === "edit"){
+                if(!isset($username) || $username === ""){
+                    $admin_errors[] .= "The username must not be blank.";
+                }
 
-                $user_edit->execute();
-            }elseif($_POST['command'] === "delete"){
-                if($admins > 1 || (int)$admin_verify === 0){
-                    if($_SESSION['id'] === (int)$user_id){
+                if(!(isset($email) && $email !== "" && filter_input(INPUT_POST, 'email', FILTER_VALIDATE_EMAIL))){
+                    $admin_errors[] .= "The email must be valid and have content.";
+                }
+
+                if(count($admin_errors) === 0){
+                    $user_update = "UPDATE users SET admin_verify = :admin_verify, username = :username, email = :email WHERE user_id = :user_id LIMIT 1";
+
+                    $user_edit = $db->prepare($user_update);
+
+                    $user_edit->bindValue("admin_verify", $admin_verify, PDO::PARAM_INT);
+                    $user_edit->bindValue("username", $username, PDO::PARAM_STR);
+                    $user_edit->bindValue("email", $email, PDO::PARAM_STR);
+                    $user_edit->bindValue("user_id", $user_id, PDO::PARAM_INT);
+
+                    $user_edit->execute();
+                    header("Location: admin.php?manage=users");
+                }
+            }elseif($_POST['command'] === "delete"){                
+                if(count($admin_errors) === 0 && ($admins > 1 || $admin_verify === 0)){
+                    if($_SESSION['id'] === $user_id){
                         $logout = true;
                     }
 
@@ -91,27 +144,19 @@
                     $user_delete_statement->bindValue("user_id", $user_id, PDO::PARAM_INT);
 
                     $user_delete_statement->execute();
+                    header("Location: admin.php?manage=users");
                 }else{
-
-
-
-
-
-
-                    // THIS DOESN'T WORK
-                    $admin_error = "There must be one admin.";
+                    $admin_errors[] .= "There must be at least one admin.";
                 }
             }
 
             // Logs user out if they delete theirself.
             if($logout){
                 header("Location: logout.php");
-            }else{
-                header("Location: admin.php?manage=users");
             }
         }
     }else{
-        // Returns to pages admin if get value doesn't work
+        // Returns to pages admin if GET value doesn't work
         header("Location: admin.php?manage=pages");
     }
 ?>
@@ -148,6 +193,10 @@
                 </div>
             </div>
         </div>
+
+        <?php for($i = 0; $i < count($admin_errors); $i++): ?>
+            <p class="alert alert-danger"><?= $admin_errors[$i] ?></p>
+        <?php endfor ?>
 
         <?php if($_GET['manage'] === "pages"): ?>
             <div class="mt-4 alert alert-success alert-dismissible" role="alert">
@@ -286,9 +335,11 @@
                                         </select>                                    
                                     </th>
                                     <td>
+                                        <label class="sr-only" for="username">Username</label>
                                         <input class="form-control" name="username" type="text" value="<?= $user['username'] ?>"/>
                                     </td>
                                     <td>
+                                        <label class="sr-only" for="email">Email</label>
                                         <input class="form-control" name="email" type="email" value="<?= $user['email'] ?>"/>
                                     </td>
                                     <td>
@@ -311,8 +362,6 @@
                     </tbody>
                 </table>
             </div>
-            
-            <p class="alert alert-danger"><?= $admin_error ?></p>
         <?php endif ?>
     </main>
 
