@@ -56,7 +56,7 @@
         $content = trim($content);
         $id = filter_input(INPUT_POST, 'page_id', FILTER_SANITIZE_NUMBER_INT);
 
-        if(isset($content) && $content !== ""){
+        if(isset($content) && $content !== "" && filter_var($id, FILTER_VALIDATE_INT)){
             $create_comment = "INSERT INTO comments (comment_content, page_id, user_id) VALUES (:comment_content, :page_id, :user_id)";
         
             $comment_statement = $db->prepare($create_comment);
@@ -66,6 +66,8 @@
             $comment_statement->bindValue('user_id', $_SESSION['id'], PDO::PARAM_INT);
 
             $comment_statement->execute();
+
+            header("Location: index.php?page_id={$id}");
         }
     }
 ?>
@@ -88,22 +90,30 @@
         </main>
     <?php else: ?>
         <main class="container mb-4">
-            <h2><?= $page['title'] ?></h2>
-            <div><?= $page['created'] ?></div>
-            <?php if($page['user_id'] === NULL): ?>
-                <h3>Author no longer exists</h3>
-            <?php else: ?>
-                <h3>By: <?= $page['username'] ?></h3>
-            <?php endif ?>
-            <?php if($page['category_id'] === NULL): ?>
-                <h3>No category</h3>
-            <?php else: ?>
-                <h3><?= $page['category_name'] ?></h3>
-            <?php endif ?>
+            <h2 class="text-center  mb-4"><?= $page['title'] ?></h2>
+            <div class="row">
+                <?php if($page['user_id'] === NULL): ?>
+                    <h4 class="col-auto">Author no longer exists</h4>
+                <?php else: ?>
+                    <h4 class="col-auto">By: <?= $page['username'] ?></h4>
+                <?php endif ?>
+                <?php if($page['category_id'] === NULL): ?>
+                    <h4 class="col-auto"><span class="badge badge-pill badge-dark">No category</span></h4>
+                <?php else: ?>
+                    <h4 class="col-auto"><span class="badge badge-pill badge-dark"><?= $page['category_name'] ?></span></h4>
+                <?php endif ?>
+            </div>
+            <div class="row">
+                <div class="col-auto text-muted">Created: <?= $page['created'] ?></div>
+                <div class="col-auto text-muted">Updated: <?= $page['updated'] ?></div>
+            </div>
+
             <?php if($page['image_file'] !== NULL): ?>
-                <img src="images/<?= $page['image_file'] ?>" alt="<?= $page['image_file'] ?>"/>
+                <div class="text-center my-5">
+                    <img class="rounded" src="images/<?= $page['image_file'] ?>" alt="<?= $page['image_file'] ?>"/>
+                </div>
             <?php endif ?>
-            <div class="container"><?= $page['content'] ?></div>
+            <div class="container mt-5"><?= $page['content'] ?></div>
         </main>
 
         <div class="container">
