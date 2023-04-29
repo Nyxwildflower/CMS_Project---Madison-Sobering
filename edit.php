@@ -1,3 +1,6 @@
+<!-- This form edits a page based on the passed page_id. It also has TinyMCE, image create and delete features, 
+     and redirects to admin.php. -->
+
 <?php
     require('connect.php');
     require('check_session.php');

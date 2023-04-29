@@ -1,3 +1,6 @@
+<!-- Creates a new page. This includes the TinyMCE editor, and allows image upload. On success, the
+     user is redirected back to the admin page. -->
+
 <?php
     require('connect.php');
     require('check_session.php');

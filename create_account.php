@@ -1,3 +1,5 @@
+<!-- This is the create account form. It displays errors when data is invalid, or adds to the user table otherwise. -->
+
 <?php
     require('connect.php');
 

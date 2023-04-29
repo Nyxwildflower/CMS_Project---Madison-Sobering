@@ -1,3 +1,5 @@
+<!-- Checks for an already logged in user, redirects to login form if not. -->
+
 <?php
     session_start();
 

@@ -1,3 +1,5 @@
+<!-- This is nearly the same as the file upload challenge, but with a delete function, and only one resized image. -->
+
 <?php
     require('\xampp\htdocs\wd2\assignments\CMS_Project - Madison Sobering\php-image-resize-master\lib\ImageResize.php');
     require('\xampp\htdocs\wd2\assignments\CMS_Project - Madison Sobering\php-image-resize-master\lib\ImageResizeException.php');

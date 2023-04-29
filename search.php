@@ -1,3 +1,6 @@
+<!-- Searches the page titles in the database based off of the search input and category type (optional).
+     Results are displayed as a table with links. -->
+
 <?php
     require('connect.php');
 

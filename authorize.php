@@ -1,3 +1,5 @@
+<!-- This is the login form that check_session redirects to create session variables to access user files. -->
+
 <?php
 	require('connect.php');
     session_start();

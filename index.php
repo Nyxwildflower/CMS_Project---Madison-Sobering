@@ -1,3 +1,5 @@
+<!-- Index is the CMS home that displays the pages based off of page id, an displays comments. -->
+
 <?php
     require('connect.php');
     session_start();

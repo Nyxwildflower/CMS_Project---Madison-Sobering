@@ -1,5 +1,6 @@
+<!-- Deletes the session information when the logout link is clicked. -->
+
 <?php
-    // Clear the session variable to log out current user.
     session_start();
     $_SESSION = [];
 

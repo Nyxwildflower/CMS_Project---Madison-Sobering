@@ -1,3 +1,5 @@
+<!-- This is the header template that's added to most of the files. It holds the search form and navbar links to pages and login/logout. -->
+
 <?php    
     $query = "SELECT page_id, title FROM pages";
     $statement = $db->prepare($query);

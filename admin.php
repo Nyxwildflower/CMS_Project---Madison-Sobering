@@ -1,3 +1,8 @@
+<!-- This file is the base for user and admin CRUD operations for the CMS pages, categories, and users.
+     It's divided into pages, categories, and users using the GET variable, and only allows admins to
+     access the users area. Page edits and user and page creation is handled by other files, but updating
+     categories and users is handled by forms sent to this file. -->
+
 <?php
     require('connect.php');
     require('check_session.php');
